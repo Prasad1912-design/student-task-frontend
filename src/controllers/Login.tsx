@@ -15,47 +15,64 @@ export default function Login({ logSuccess }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
 
-    const email = emailRef.current?.value;
-    const password = passwordRef.current?.value;
+  e.preventDefault();
 
-    if (!email || !password) {
-      setError("Both fields are mandatory");
-      return;
-    }
+  const email = emailRef.current?.value;
+  const password = passwordRef.current?.value;
 
-    try {
-      setLoading(true);
-      setError("");
+  if (!email || !password) {
+    setError("Both fields are mandatory");
+    return;
+  }
 
-      const response = await axios.post(
-        "http://localhost:5000/login",
-        { email, password }
+  try {
+
+    setLoading(true);
+    setError("");
+
+    const response = await axios.post(
+      "http://localhost:5000/login",
+      {
+        email: encryptFrontend(email),
+        password: encryptFrontend(password)
+      }
+    );
+
+    if (response.data.success) {
+
+      logSuccess();
+
+      navigate("/dashboard");
+
+    } else {
+
+      setError(
+        response.data.message ||
+        "Invalid Email or Password"
       );
 
-      console.log(response.data);
+    }
 
-      if (response.data.success) {
-        logSuccess();
-        navigate("/dashboard");
-      } else {
-        setError(response.data.message || "Invalid Email or Password");
-      }
-
-      
-    } catch (err) {
+  }
+  catch (err) {
 
     const data = err.response?.data;
-      if (!data.success) {
-        setError(data.message || "Invalid credentials");
-        return;
-      }
-} finally {
-      setLoading(false);
-    }
-  };
+
+    setError(
+      data?.message ||
+      "Invalid credentials"
+    );
+
+  }
+  finally {
+
+    setLoading(false);
+
+  }
+
+};
 
   return (
     <div className="login-container">

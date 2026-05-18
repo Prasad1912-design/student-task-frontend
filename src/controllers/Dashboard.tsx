@@ -38,14 +38,14 @@ export default function StudentDashboard({logFail}) {
     const decryptedData = res.data.data.map((item) => ({
       ...item,
       fullName: decryptFrontend(item.fullName),
-      email: item.email,
+      email: decryptFrontend(item.email),
+      phoneNumber : decryptFrontend(item.phoneNumber),
       gender: decryptFrontend(item.gender),
       address: decryptFrontend(item.address),
       courseEnrolled: decryptFrontend(item.courseEnrolled),
     }));
 
     setStudents(decryptedData);
-    console.log(decryptedData);
 
   } catch (err) {
     console.error("Failed to fetch", err);

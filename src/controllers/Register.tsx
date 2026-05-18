@@ -1,63 +1,279 @@
-import { useRef } from 'react';
+// Register.tsx
+
+import { useState } from 'react';
 import './css/Register.css';
 import axios from 'axios';
 import { encryptFrontend } from '../utils/crypto';
 
-export default function Register({logSuccess}) {
+export default function Register({ logSuccess }) {
 
-  const fullNameRef = useRef<HTMLInputElement>(null);
-  const emailRef = useRef<HTMLInputElement>(null);
-  const phoneNumberRef = useRef<HTMLInputElement>(null);
-  const dobRef = useRef<HTMLInputElement>(null);
-  const genderRef = useRef<HTMLSelectElement>(null);
-  const addressRef = useRef<HTMLTextAreaElement>(null);
-  const courseRef = useRef<HTMLInputElement>(null);
-  const passwordRef = useRef<HTMLInputElement>(null);
+  const [students, setStudents] = useState([
+    {
+      fullName: "",
+      email: "",
+      phoneNumber: "",
+      dob: "",
+      gender: "",
+      address: "",
+      courseEnrolled: "",
+      password: ""
+    }
+  ]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const [loading, setLoading] = useState(false);
+
+  // ==========================================
+  // EMAIL ERRORS
+  // ==========================================
+
+  const [emailErrors, setEmailErrors] =
+    useState<{ [key: number]: string }>({});
+
+  // ==========================================
+  // HANDLE CHANGE
+  // ==========================================
+
+  const handleChange = (
+    index: number,
+    e: React.ChangeEvent<
+      HTMLInputElement |
+      HTMLTextAreaElement |
+      HTMLSelectElement
+    >
+  ) => {
+
+    const updatedStudents = [...students];
+
+    updatedStudents[index] = {
+      ...updatedStudents[index],
+      [e.target.name]: e.target.value
+    };
+
+    setStudents(updatedStudents);
+
+    // REMOVE ERROR WHILE TYPING
+
+    setEmailErrors((prev) => ({
+      ...prev,
+      [index]: ""
+    }));
+
+  }
+
+  // ==========================================
+  // ADD STUDENT
+  // ==========================================
+
+  const addStudent = () => {
+
+    setStudents([
+      ...students,
+      {
+        fullName: "",
+        email: "",
+        phoneNumber: "",
+        dob: "",
+        gender: "",
+        address: "",
+        courseEnrolled: "",
+        password: ""
+      }
+    ]);
+
+  }
+
+  // ==========================================
+  // REMOVE STUDENT
+  // ==========================================
+
+  const removeStudent = (index: number) => {
+
+    const updatedStudents =
+      students.filter((_, i) => i !== index);
+
+    setStudents(updatedStudents);
+
+  }
+
+  // ==========================================
+  // SUBMIT
+  // ==========================================
+
+  const handleSubmit = async (
+    e: React.FormEvent
+  ) => {
 
     e.preventDefault();
 
-    const studentData = {
+    // ==========================================
+    // CLEAR OLD ERRORS
+    // ==========================================
 
-      fullName: encryptFrontend(fullNameRef.current?.value),
-      email: emailRef.current?.value,
-      phoneNumber: phoneNumberRef.current?.value,  // Due to type number can't  ncrypt
-      dob: dobRef.current?.value,   // Due to type date can't encrypt
-      gender: encryptFrontend(genderRef.current?.value),
-      address: encryptFrontend(addressRef.current?.value),
-      courseEnrolled: encryptFrontend(courseRef.current?.value),
-      password: passwordRef.current?.value
+    setEmailErrors({});
+
+    // ==========================================
+    // VALIDATION
+    // ==========================================
+
+    for (let student of students) {
+
+      if (
+        !student.fullName ||
+        !student.email ||
+        !student.phoneNumber ||
+        !student.dob ||
+        !student.gender ||
+        !student.address ||
+        !student.courseEnrolled ||
+        !student.password
+      ) {
+
+        alert("All fields are mandatory");
+
+        return;
+
+      }
 
     }
 
-    // Validation
+    // ==========================================
+    // SAME PAGE DUPLICATE CHECK
+    // ==========================================
 
-    if (
-      !studentData.fullName ||
-      !studentData.email ||
-      !studentData.phoneNumber ||
-      !studentData.dob ||
-      !studentData.gender ||
-      !studentData.address ||
-      !studentData.courseEnrolled ||
-      !studentData.password
-    ) {
+    const errors:
+      { [key: number]: string } = {};
 
-      alert("All fields are mandatory");
+    students.forEach((student, index) => {
+
+      const duplicateIndex =
+        students.findIndex((s, i) => {
+
+          return (
+            s.email === student.email
+            &&
+            i !== index
+          );
+
+        });
+
+      if (duplicateIndex !== -1) {
+
+        errors[index] =
+          "Email already entered";
+
+      }
+
+    });
+
+    // ==========================================
+    // STOP IF DUPLICATE FOUND
+    // ==========================================
+
+    if (Object.keys(errors).length > 0) {
+
+      setEmailErrors(errors);
 
       return;
 
     }
 
-    const response = await axios.post('http://localhost:5000/insertStudent',studentData);
-    if(response.data.success)
-    {
-      logSuccess();
+    // ==========================================
+    // ENCRYPT DATA
+    // ==========================================
+
+    const encryptedStudents =
+      students.map((student) => ({
+
+        fullName:
+          encryptFrontend(student.fullName),
+
+        email:
+          encryptFrontend(student.email),
+
+        phoneNumber:
+          encryptFrontend(student.phoneNumber),
+
+        dob:
+          student.dob,
+
+        gender:
+          encryptFrontend(student.gender),
+
+        address:
+          encryptFrontend(student.address),
+
+        courseEnrolled:
+          encryptFrontend(student.courseEnrolled),
+
+        password:
+          encryptFrontend(student.password)
+
+      }));
+
+    try {
+
+      setLoading(true);
+
+      const response = await axios.post(
+        'http://localhost:5000/insertStudent',
+        {
+          students: encryptedStudents
+        }
+      );
+
+      if (response.data.success) {
+
+        alert(
+          "Students Registered Successfully"
+        );
+
+        logSuccess();
+
+      }
+
     }
-    else
-    {
-      console.log("Failed");
+    catch (error: any) {
+
+      // ======================================
+      // DATABASE DUPLICATE EMAILS
+      // ======================================
+
+      if (
+        error.response?.data?.duplicateEmails
+      ) {
+
+        const dbErrors:
+          { [key: number]: string } = {};
+
+        students.forEach((student, index) => {
+
+          if (
+            error.response.data.duplicateEmails
+            .includes(student.email)
+          ) {
+
+            dbErrors[index] =
+              "Email already exists in database";
+
+          }
+
+        });
+
+        setEmailErrors(dbErrors);
+
+      }
+
+      alert(
+        error.response?.data?.message
+        ||
+        "Registration Failed"
+      );
+
+    }
+    finally {
+
+      setLoading(false);
+
     }
 
   }
@@ -73,138 +289,242 @@ export default function Register({logSuccess}) {
         </h1>
 
         <p className="sub-heading">
-          Fill all details to create student account
+          Add single or multiple students
         </p>
 
         <form onSubmit={handleSubmit}>
 
-          {/* FULL NAME */}
+          {
+            students.map((student, index) => (
 
-          <div className="input-group">
+              <div
+                className="student-box"
+                key={index}
+              >
 
-            <label>Full Name</label>
+                <div className="student-header">
 
-            <input
-              ref={fullNameRef}
-              type="text"
-              placeholder="Enter full name"
-            />
+                  <h2>
+                    Student {index + 1}
+                  </h2>
 
-          </div>
+                  {
+                    students.length > 1 &&
+                    <button
+                      type="button"
+                      className="remove-btn"
+                      onClick={() =>
+                        removeStudent(index)
+                      }
+                    >
+                      Remove
+                    </button>
+                  }
 
-          {/* EMAIL */}
+                </div>
 
-          <div className="input-group">
+                {/* FULL NAME */}
 
-            <label>Email Address</label>
+                <div className="input-group">
 
-            <input
-              ref={emailRef}
-              type="email"
-              placeholder="Enter email"
-            />
+                  <label>Full Name</label>
 
-          </div>
+                  <input
+                    type="text"
+                    name="fullName"
+                    value={student.fullName}
+                    onChange={(e) =>
+                      handleChange(index, e)
+                    }
+                    placeholder="Enter full name"
+                  />
 
-          {/* PHONE */}
+                </div>
 
-          <div className="input-group">
+                {/* EMAIL */}
 
-            <label>Phone Number</label>
+                <div className="input-group">
 
-            <input
-              ref={phoneNumberRef}
-              type="number"
-              placeholder="Enter phone number"
-            />
+                  <label>Email Address</label>
 
-          </div>
+                  <input
+                    type="email"
+                    name="email"
+                    value={student.email}
+                    onChange={(e) =>
+                      handleChange(index, e)
+                    }
+                    placeholder="Enter email"
+                    className={
+                      emailErrors[index]
+                      ?
+                      "error-input"
+                      :
+                      ""
+                    }
+                  />
 
-          {/* DOB */}
+                  {
+                    emailErrors[index]
+                    &&
+                    (
+                      <p className="error-text">
+                        {emailErrors[index]}
+                      </p>
+                    )
+                  }
 
-          <div className="input-group">
+                </div>
 
-            <label>Date of Birth</label>
+                {/* PHONE */}
 
-            <input
-              ref={dobRef}
-              type="date"
-            />
+                <div className="input-group">
 
-          </div>
+                  <label>Phone Number</label>
 
-          {/* GENDER */}
+                  <input
+                    type="tel"
+                    name="phoneNumber"
+                    value={student.phoneNumber}
+                    onChange={(e) =>
+                      handleChange(index, e)
+                    }
+                    placeholder="Enter phone number"
+                  />
 
-          <div className="input-group">
+                </div>
 
-            <label>Gender</label>
+                {/* DOB */}
 
-            <select ref={genderRef}>
+                <div className="input-group">
 
-              <option value="">
-                Select Gender
-              </option>
+                  <label>Date of Birth</label>
 
-              <option value="Male">
-                Male
-              </option>
+                  <input
+                    type="date"
+                    name="dob"
+                    value={student.dob}
+                    onChange={(e) =>
+                      handleChange(index, e)
+                    }
+                  />
 
-              <option value="Female">
-                Female
-              </option>
+                </div>
 
-            </select>
+                {/* GENDER */}
 
-          </div>
+                <div className="input-group">
 
-          {/* ADDRESS */}
+                  <label>Gender</label>
 
-          <div className="input-group">
+                  <select
+                    name="gender"
+                    value={student.gender}
+                    onChange={(e) =>
+                      handleChange(index, e)
+                    }
+                  >
 
-            <label>Address</label>
+                    <option value="">
+                      Select Gender
+                    </option>
 
-            <textarea
-              ref={addressRef}
-              placeholder="Enter address"
-            ></textarea>
+                    <option value="Male">
+                      Male
+                    </option>
 
-          </div>
+                    <option value="Female">
+                      Female
+                    </option>
 
-          {/* COURSE */}
+                  </select>
 
-          <div className="input-group">
+                </div>
 
-            <label>Course Enrolled</label>
+                {/* ADDRESS */}
 
-            <input
-              ref={courseRef}
-              type="text"
-              placeholder="Enter course"
-            />
+                <div className="input-group">
 
-          </div>
+                  <label>Address</label>
 
-          {/* PASSWORD */}
+                  <textarea
+                    name="address"
+                    value={student.address}
+                    onChange={(e) =>
+                      handleChange(index, e)
+                    }
+                    placeholder="Enter address"
+                  ></textarea>
 
-          <div className="input-group">
+                </div>
 
-            <label>Password</label>
+                {/* COURSE */}
 
-            <input
-              ref={passwordRef}
-              type="password"
-              placeholder="Enter password"
-            />
+                <div className="input-group">
 
-          </div>
+                  <label>Course Enrolled</label>
 
-          {/* BUTTON */}
+                  <input
+                    type="text"
+                    name="courseEnrolled"
+                    value={student.courseEnrolled}
+                    onChange={(e) =>
+                      handleChange(index, e)
+                    }
+                    placeholder="Enter course"
+                  />
+
+                </div>
+
+                {/* PASSWORD */}
+
+                <div className="input-group">
+
+                  <label>Password</label>
+
+                  <input
+                    type="password"
+                    name="password"
+                    value={student.password}
+                    onChange={(e) =>
+                      handleChange(index, e)
+                    }
+                    placeholder="Enter password"
+                  />
+
+                </div>
+
+              </div>
+
+            ))
+          }
+
+          {/* ADD BUTTON */}
+
+          <button
+            type="button"
+            className="add-btn"
+            onClick={addStudent}
+          >
+            + Add More Student
+          </button>
+
+          {/* SUBMIT */}
 
           <button
             type="submit"
             className="register-btn"
+            disabled={loading}
           >
-            Register Student
+
+            {
+              loading
+              ?
+              "Registering..."
+              :
+              "Register Students"
+            }
+
           </button>
 
         </form>

@@ -2,7 +2,7 @@
   margin:0;
   padding:0;
   box-sizing:border-box;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family:Arial, Helvetica, sans-serif;
 }
 
 .register-container{
@@ -17,7 +17,7 @@
 
 .register-card{
   width:100%;
-  max-width:700px;
+  max-width:850px;
   background:white;
   padding:45px;
   border-radius:25px;
@@ -34,6 +34,26 @@
   color:#64748b;
   margin-bottom:35px;
   font-size:17px;
+}
+
+.student-box{
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+  padding:25px;
+  border-radius:20px;
+  margin-bottom:30px;
+}
+
+.student-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+
+.student-header h2{
+  color:#0f172a;
+  font-size:24px;
 }
 
 .input-group{
@@ -57,6 +77,7 @@
   font-size:16px;
   outline:none;
   transition:0.3s;
+  background:white;
 }
 
 .input-group textarea{
@@ -70,6 +91,39 @@
   border-color:#0f172a;
 }
 
+.add-btn{
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:14px;
+  background:#2563eb;
+  color:white;
+  font-size:17px;
+  font-weight:bold;
+  cursor:pointer;
+  transition:0.3s;
+  margin-bottom:20px;
+}
+
+.add-btn:hover{
+  background:#1d4ed8;
+}
+
+.remove-btn{
+  padding:10px 18px;
+  border:none;
+  border-radius:10px;
+  background:#dc2626;
+  color:white;
+  font-size:14px;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+.remove-btn:hover{
+  background:#b91c1c;
+}
+
 .register-btn{
   width:100%;
   padding:16px;
@@ -81,9 +135,94 @@
   font-weight:bold;
   cursor:pointer;
   transition:0.3s;
-  margin-top:10px;
 }
 
 .register-btn:hover{
   background:#1e293b;
+}
+
+.register-btn:disabled{
+  opacity:0.7;
+  cursor:not-allowed;
+}
+
+@media(max-width:768px){
+
+  .register-card{
+    padding:25px;
+  }
+
+  .register-card h1{
+    font-size:32px;
+  }
+
+  .student-header{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:15px;
+  }
+
+}
+
+/* ADD IN Register.css */
+
+.error-input{
+  border:2px solid red !important;
+  background:#fff5f5;
+}
+
+.error-text{
+  color:red;
+  font-size:14px;
+  margin-top:6px;
+}
+
+.student-box{
+  border:1px solid #dbe4ee;
+  border-radius:18px;
+  padding:25px;
+  margin-bottom:30px;
+  background:#f8fafc;
+}
+
+.student-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+
+.student-header h2{
+  color:#0f172a;
+}
+
+.remove-btn{
+  background:#ef4444;
+  color:white;
+  border:none;
+  padding:10px 16px;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+.remove-btn:hover{
+  background:#dc2626;
+}
+
+.add-btn{
+  width:100%;
+  padding:15px;
+  margin-bottom:20px;
+  border:none;
+  background:#2563eb;
+  color:white;
+  font-size:16px;
+  border-radius:12px;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+.add-btn:hover{
+  background:#1d4ed8;
 }

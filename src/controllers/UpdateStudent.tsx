@@ -32,8 +32,8 @@ const fetchStudent = async () => {
 
     const decryptedData = {
       fullName: decryptFrontend(data.fullName || ""),
-      email: data.email,
-      phoneNumber: data.phoneNumber || "",
+      email: decryptFrontend(data.email),
+      phoneNumber: decryptFrontend(data.phoneNumber || ""),
       dob: formatDate(data.dob), // ✅ FIXED HERE
       gender: decryptFrontend(data.gender || ""),
       address: decryptFrontend(data.address || ""),
@@ -65,8 +65,8 @@ const fetchStudent = async () => {
 
     const encryptedData = {
     fullName: encryptFrontend(formData.fullName),
-    email: formData.email,
-    phoneNumber: formData.phoneNumber,
+    email: encryptFrontend(formData.email),
+    phoneNumber: encryptFrontend(formData.phoneNumber),
     dob: formData.dob, // keep as-is (date issue)
     gender: encryptFrontend(formData.gender),
     address: encryptFrontend(formData.address),
@@ -84,7 +84,10 @@ const fetchStudent = async () => {
         navigate("/dashboard");
       }
     } catch (err) {
-      console.log("Update failed", err);
+        alert(
+    err.response?.data?.message ||
+    "Registration Failed"
+  );
     }
   };
 
