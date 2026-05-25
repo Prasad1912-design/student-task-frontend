@@ -22,6 +22,7 @@ export default function StudentDashboard({logFail}) {
       if(response.data.success)
         {
           setStudents((data)=>data.filter((student)=>student._id!==id));
+          logFail();
         }
     }
     catch(error)
@@ -67,6 +68,37 @@ export default function StudentDashboard({logFail}) {
         </div>
       </div>
 
+      {/* Welcome & Security Notice */}
+
+<div className="dashboard-info">
+
+  <div>
+
+    <h2>
+      Hello, {
+        students.find(
+          (student) =>
+            student._id ===
+            localStorage.getItem("userId")
+        )?.fullName || "Student"
+      }
+    </h2>
+
+    <p>
+      Welcome back to your student dashboard.
+    </p>
+
+  </div>
+
+  <div className="security-notice">
+
+    For security reasons, users can only
+    update or delete their own profile.
+
+  </div>
+
+</div>
+
       {/* Table Section */}
       <div className="card">
         <table>
@@ -93,10 +125,12 @@ export default function StudentDashboard({logFail}) {
                 <td>{item.address}</td>
                 <td>{item.courseEnrolled}</td>
                 <td>
+                  { (localStorage.getItem("userId") === item._id) &&
                   <div className="icon-group" style={{ justifyContent: 'center' }}>
                     <button onClick={()=>navigate(`/updateStudent/${item._id}`)} className="action-btn edit-icon" title="Edit">✏️</button>
                     <button className="action-btn delete-icon" onClick={()=>handleDelete(item._id)} title="Delete">🗑️</button>
                   </div>
+                  }
                 </td>
               </tr>
             ))}

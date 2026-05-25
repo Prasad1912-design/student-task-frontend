@@ -19,13 +19,17 @@ function App() {
   }, []);
 
   // LOGIN SUCCESS
-  const logSuccess = () => {
+  const logSuccess = (email,userID) => {
+    localStorage.setItem("userId", userID);
+    localStorage.setItem('userEmail',email);
     localStorage.setItem("logSuccess", "true");
     setIsAuth(true);
   };
 
   // LOGOUT
   const logFail = () => {
+    localStorage.removeItem("userId");
+    localStorage.removeItem("userEmail");
     localStorage.removeItem("logSuccess");
     setIsAuth(false);
   };
@@ -53,7 +57,7 @@ function App() {
             isAuth ? (
               <Navigate to="/dashboard" />
             ) : (
-              <Register logSuccess = {logSuccess} />
+              <Register />
             )
           }
         />

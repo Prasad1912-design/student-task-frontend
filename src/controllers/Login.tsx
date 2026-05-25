@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import "./css/Login.css";
 import { useNavigate } from "react-router-dom";
-import { encryptFrontend } from "../utils/crypto";
+import { encryptFrontend, decryptFrontend } from "../utils/crypto";
 
 export default function Login({ logSuccess }) {
   const navigate = useNavigate();
@@ -42,7 +42,7 @@ const handleSubmit = async (e) => {
 
     if (response.data.success) {
 
-      logSuccess();
+       logSuccess(response.data.userEmail, response.data.user);
 
       navigate("/dashboard");
 

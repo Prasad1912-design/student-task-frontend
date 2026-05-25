@@ -5,7 +5,11 @@ import './css/Register.css';
 import axios from 'axios';
 import { encryptFrontend } from '../utils/crypto';
 
-export default function Register({ logSuccess }) {
+import { useNavigate } from 'react-router';
+
+export default function Register() {
+
+  const nav = useNavigate();
 
   const [students, setStudents] = useState([
     {
@@ -21,6 +25,10 @@ export default function Register({ logSuccess }) {
   ]);
 
   const [loading, setLoading] = useState(false);
+
+  const [successMessage, setSuccessMessage] = useState("");
+
+  const [errorMessage, setErrorMessage] = useState("");
 
   // ==========================================
   // EMAIL ERRORS
@@ -105,6 +113,8 @@ export default function Register({ logSuccess }) {
 
     e.preventDefault();
 
+    setSuccessMessage("");
+    setErrorMessage("");
     // ==========================================
     // CLEAR OLD ERRORS
     // ==========================================
@@ -128,7 +138,7 @@ export default function Register({ logSuccess }) {
         !student.password
       ) {
 
-        alert("All fields are mandatory");
+        setErrorMessage("All fields are mandatory");
 
         return;
 
@@ -223,11 +233,11 @@ export default function Register({ logSuccess }) {
 
       if (response.data.success) {
 
-        alert(
-          "Students Registered Successfully"
-        );
+        setSuccessMessage("Students Registered Successfully");
 
-        logSuccess();
+        setTimeout(()=>{
+          nav('/');
+        },2000);
 
       }
 
@@ -263,11 +273,7 @@ export default function Register({ logSuccess }) {
 
       }
 
-      alert(
-        error.response?.data?.message
-        ||
-        "Registration Failed"
-      );
+      setErrorMessage(error.response?.data?.message || "Registration Failed");
 
     }
     finally {
@@ -291,6 +297,24 @@ export default function Register({ logSuccess }) {
         <p className="sub-heading">
           Add single or multiple students
         </p>
+
+        {
+          successMessage &&
+          (
+            <div className="success-message">
+              {successMessage}
+            </div>
+          )
+        }
+
+        {
+          errorMessage &&
+          (
+            <div className="error-message">
+              {errorMessage}
+            </div>
+          )
+        }
 
         <form onSubmit={handleSubmit}>
 
